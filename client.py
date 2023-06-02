@@ -11,8 +11,15 @@ async def connect():
 
 
 @sio.event
-async def signal(data):
-    print("Received signal: ", data)
+async def ready():
+    print('Received ready')
+    await sio.emit('data', {'message': 'ping'})
+
+
+@sio.event
+async def data(data):
+    print('Received: ', data)
+    await sio.emit('data', {'message': 'ping'})
 
 
 async def main():
