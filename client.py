@@ -13,7 +13,7 @@ import sys
 from aiortc.sdp import candidate_from_sdp, candidate_to_sdp
 
 sio = socketio.AsyncClient()
-pc = None
+pc = RTCPeerConnection()
 
 
 @sio.event
@@ -23,15 +23,21 @@ async def connect():
 
 @sio.event
 async def ready():
-    print('Received ready')
-    await sio.emit('data', {'message': 'ping'})
+    print('Received ready from the signaling server')
+    await sio.emit('data', {'type': 'ping'})
+
+    print('Create RTCPeerConnection on the offer side')
+    offer = await create_offer()
+
+    await sio.emit('data', {'type': 'offer',
+                            'offer': object_to_string(offer)})
 
 
 @sio.event
 async def data(data):
-    print('Received: ', data)
+    print('Received from the signaling server: ', data)
 
-    if 'message' in data and data['message'] == 'ping':
+    if 'type' in data and data['type'] == 'ping':
         await asyncio.sleep(1)
         await sio.emit('data', {'message': 'ping'})
 
@@ -116,9 +122,8 @@ async def run_answer(pc, signaling):
     await consume_signaling(pc, signaling)
 
 
-async def run_offer(pc, signaling):
-    await signaling.connect()
-
+async def create_offer():
+    # TODO: Split the method
     channel = pc.createDataChannel("chat")
     channel_log(channel, "-", "created by local party")
 
@@ -141,9 +146,8 @@ async def run_offer(pc, signaling):
 
     # send offer
     await pc.setLocalDescription(await pc.createOffer())
-    await signaling.send(pc.localDescription)
+    return pc.localDescription
 
-    await consume_signaling(pc, signaling)
 ########################################################
 
 
