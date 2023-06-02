@@ -39,7 +39,7 @@ async def data(data):
 
     if 'type' in data and data['type'] == 'ping':
         await asyncio.sleep(1)
-        await sio.emit('data', {'message': 'ping'})
+        await sio.emit('data', {'type': 'ping'})
 
 
 ########################################################
