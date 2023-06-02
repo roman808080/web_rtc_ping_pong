@@ -27,6 +27,7 @@ async def ready():
     await sio.emit('data', {'type': 'ping'})
 
     print('Create RTCPeerConnection on the offer side')
+    await set_offer_side_handlers()
     offer = await create_offer()
 
     await sio.emit('data', {'type': 'offer',
@@ -104,9 +105,7 @@ async def consume_signaling(pc, signaling):
             break
 
 
-async def create_answer(pc, signaling):
-    # TODO: Split the method
-
+async def set_answer_side_handlers(pc, signaling):
     @pc.on("datachannel")
     def on_datachannel(channel):
         channel_log(channel, "-", "created by remote party")
@@ -119,11 +118,8 @@ async def create_answer(pc, signaling):
                 # reply
                 channel_send(channel, "pong" + message[4:])
 
-    await consume_signaling(pc, signaling)
 
-
-async def create_offer():
-    # TODO: Split the method
+async def set_offer_side_handlers():
     channel = pc.createDataChannel("chat")
     channel_log(channel, "-", "created by local party")
 
@@ -144,7 +140,7 @@ async def create_offer():
             elapsed_ms = (current_stamp() - int(message[5:])) / 1000
             print(" RTT %.2f ms" % elapsed_ms)
 
-    # send offer
+async def create_offer():
     await pc.setLocalDescription(await pc.createOffer())
     return pc.localDescription
 
