@@ -104,8 +104,8 @@ async def consume_signaling(pc, signaling):
             break
 
 
-async def run_answer(pc, signaling):
-    await signaling.connect()
+async def create_answer(pc, signaling):
+    # TODO: Split the method
 
     @pc.on("datachannel")
     def on_datachannel(channel):
